@@ -4,7 +4,7 @@
 #include	<sys/stat.h>
 #include	"sudoku.h"
 #include	"countbits.h"
-
+#include 	<ctype.h>
 HISTORY *openHistory ( void ) {
 	HISTORY	*hist;
 	if ( hist = ( HISTORY * ) malloc ( sizeof ( HISTORY ) ) ) {
