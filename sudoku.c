@@ -4,8 +4,6 @@
 #include	<sys/stat.h>
 #include	"countbits.h"
 
-<<<<<<< HEAD
-=======
 #define		SNL(a,b)	((a)=((a)&~(0xF))|(b))
 #define		GNL(a)		((a)&(0xF))
 #define		SHL(a,b)	((a)=((a)&~(0xF0))|((b)<<4))
@@ -34,7 +32,6 @@ typedef struct {
 	HISTORY	*history;
 } PUZZLE;
 
->>>>>>> Second stage
 HISTORY *openHistory ( void ) {
 	HISTORY	*hist;
 	if ( hist = ( HISTORY * ) malloc ( sizeof ( HISTORY ) ) ) {
