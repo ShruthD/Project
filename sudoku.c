@@ -2,9 +2,39 @@
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<sys/stat.h>
-#include	"sudoku.h"
 #include	"countbits.h"
 
+<<<<<<< HEAD
+=======
+#define		SNL(a,b)	((a)=((a)&~(0xF))|(b))
+#define		GNL(a)		((a)&(0xF))
+#define		SHL(a,b)	((a)=((a)&~(0xF0))|((b)<<4))
+#define		GHL(a)		(((a)&(0xF0))>>4)
+#define	closeHistory(deadMeat)	free((void*)deadMeat)
+
+typedef struct {
+	int	row;
+	int	column;
+} CELL;
+
+typedef struct {
+	int	head;
+	int	list [81];
+	CELL	cellCoords;
+} HISTORY;
+
+typedef struct {
+	int	difficulty;
+	int	technique;
+	char	grid [9][9];
+	short	masks [9][9];
+	short	rowMasks [9];
+	short	columnMasks [9];
+	short	blockMasks [3][3];
+	HISTORY	*history;
+} PUZZLE;
+
+>>>>>>> Second stage
 HISTORY *openHistory ( void ) {
 	HISTORY	*hist;
 	if ( hist = ( HISTORY * ) malloc ( sizeof ( HISTORY ) ) ) {
