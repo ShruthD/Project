@@ -2,9 +2,9 @@ all: sudoku
 
 sudoku: LDLIBS += -lcurses
 
-sudoku: main1.o sudoku.o display.o countbits.o
+sudoku: main.o sudoku.o display.o countbits.o
 
-main1.o: sudoku.h display.h
+main.o: sudoku.h display.h
 
 display.o: display.h countbits.h
 
