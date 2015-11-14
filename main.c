@@ -1,14 +1,11 @@
 /*Sudoku Puzzle Solver.*/
-
 #include        <stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
 #include	"display.h"
 #include	"sudoku.h"
-
 static char * tupleNames [] = { "pair", "triplet", "quadruplet", "quintuplet", "sextuplet", "septuplet", "octuplet" };
 static char tupleNameBuffer [100];
-
 void displaySolution ( DISPLAY *display, PUZZLE *puzzle ) {
 	int row, column, delay;
 	delay = display->delay;
@@ -21,7 +18,6 @@ void displaySolution ( DISPLAY *display, PUZZLE *puzzle ) {
   	}
    	display->delay = delay;
 }
-
 char *printTuple ( int tuple ) {
 	char *tupleName = tupleNameBuffer;
 	if ( tuple > 1 && tuple < 9 ) 
@@ -30,15 +26,10 @@ char *printTuple ( int tuple ) {
 	   	sprintf ( tupleNameBuffer, "%d", tuple );
 	return tupleName;
 }
-
-#define	DEFAULT_DELAY	1000
-#define	FAST_DELAY	500
-#define	SLOW_DELAY	2000
-
 int main ( int argc, char **argv ) {
   	int status = 1;
    	DISPLAY	*display;
-   	int delay = DEFAULT_DELAY;
+   	int delay = 1000;
    	int analysis = 0;
    	if (display = (openDisplay(delay))) {
 		PUZZLE	*puzzle;
