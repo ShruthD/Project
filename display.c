@@ -1,5 +1,4 @@
 /*Sudoku Puzzle Solver, curses GUI logic.*/
-
 #include	<stdio.h>
 #include	<sys/stat.h>
 #include	<stdlib.h>
@@ -7,21 +6,7 @@
 #include	<curses.h>
 #include	"display.h"
 #include	"countbits.h"
-
 #define		BIT_MASK	0x1FF
-
-const char	*gameName = PUZZLE_TITLE;
-const char	*instructions1 = "Enter clues";
-const char	*instructions2 = "'s' = solve";
-const char	*quit = "Quit (Y/N)? ";
-const char	*thinking = "Thinking...";
-const char	*paused = "Paused...";
-const char	*stumped = "Multiple Solutions";
-const char	*noSolution = "No Solution!";
-const char	*solved = "Ta Daaaa!!!";
-const char	*toExit = "Press any key ...";
-const char	*solveAnyway = "Solve (Y/N)?";
-
 int confirm ( DISPLAY *display, const char *message ) {
 	int y = display->y0 - 1, x, c, stringLength;
 	stringLength = strlen ( message );
@@ -35,7 +20,6 @@ int confirm ( DISPLAY *display, const char *message ) {
 	clrtoeol ();
 	return c;
 }
-
 void displayCaptions ( DISPLAY *display, const char *line1, const char *line2 ) {
 	int x, y, stringLength;
 	const char *c;
@@ -63,7 +47,6 @@ void displayCaptions ( DISPLAY *display, const char *line1, const char *line2 ) 
    	}
 	move ( display->y0 + 1, display->x0 + 1 );
 }
-
 int displayEntry ( DISPLAY *display, int i, int j, int entry ) {
    	int status = 1, y, x, c;
 	display->board [i][j] = entry;
@@ -109,8 +92,7 @@ int displayEntry ( DISPLAY *display, int i, int j, int entry ) {
 		refresh ();
 	return status;
 }
-
-static void deleteClue ( DISPLAY *display, int i, int j ) {
+void deleteClue ( DISPLAY *display, int i, int j ) {
 	int entry = display->board [i][j], bit;
 	if ( entry != 0 ) {
 		bit = digit2bit ( entry );
@@ -120,8 +102,7 @@ static void deleteClue ( DISPLAY *display, int i, int j ) {
 		display->board [i][j] = 0;
 	}
 }
-
-static int enterClue ( DISPLAY *display, int i, int j, int entry ) {
+int enterClue ( DISPLAY *display, int i, int j, int entry ) {
 	int status = 1, bit;
 	/* Is this a necessary entry? */
 	if ( entry != display->board [i][j] ) {
@@ -139,8 +120,7 @@ static int enterClue ( DISPLAY *display, int i, int j, int entry ) {
 	}
 	return status;
 }
-
-static int getClues ( DISPLAY *display ) {
+int getClues ( DISPLAY *display ) {
 	int status = -1, y = 1, x = 1, y_count = 0, x_count = 0, c, i, j, remainder;
 	while ( status < 0 ) {
 		switch ( c = getch () ) {
@@ -317,8 +297,7 @@ static int getClues ( DISPLAY *display ) {
    	}
   	return status;
 }
-
-static void drawTitle ( DISPLAY *display ) {
+void drawTitle ( DISPLAY *display ) {
 	int titleLen = strlen ( gameName ), x;
 	x = display->x0 + ( ( isBig ( display ) ? 19 : 13 ) - titleLen ) / 2;
 	move ( display->y0 - 2, x );
@@ -326,8 +305,7 @@ static void drawTitle ( DISPLAY *display ) {
 	while ( x < titleLen ) 
 		addch ( gameName [ x++] | A_BOLD | A_UNDERLINE );
 }
-
-static DISPLAY *drawBoard ( void )  {
+DISPLAY *drawBoard ( void )  {
 	DISPLAY *display = NULL;
 	int c, y, x, xBorder, yBorder, bigBox, littleBox;
 	getmaxyx ( stdscr, y, x );
@@ -402,14 +380,13 @@ static DISPLAY *drawBoard ( void )  {
 	}
    	return display;
 }
-
 void closeDisplay ( DISPLAY *display ) {
 	if ( display ) {
-		if ( ! isendwin () ) endwin ();
+		if ( ! isendwin () ) 
+			endwin ();
 		free ( display );
 	}
 }
-
 DISPLAY *openDisplay ( int delay ) {
 	int i, j;
    	DISPLAY *display = NULL;
@@ -440,7 +417,7 @@ DISPLAY *openDisplay ( int delay ) {
 					for ( j = 0; j < 3; ++j )
 						display->blockMasks [i][j] = BIT_MASK;
 						if ( ! getClues ( display ) ) {
-							closeDisplay ( display );
+							closeDisplay(display);
 							display = NULL;
 						} else display->delay = delay;
 			}
