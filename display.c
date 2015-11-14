@@ -1,4 +1,4 @@
-/*Sudoku Puzzle Solver, curses GUI logic.*/
+/*ncurses file.*/
 #include	<stdio.h>
 #include	<sys/stat.h>
 #include	<stdlib.h>
