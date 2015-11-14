@@ -7,6 +7,17 @@
 #include	"display.h"
 #include	"countbits.h"
 #define		BIT_MASK	0x1FF
+const char	*gameName = PUZZLE_TITLE;
+const char	*instructions1 = "Enter clues";
+const char	*instructions2 = "'s' = solve";
+const char	*quit = "Quit (Y/N)? ";
+const char	*thinking = "Thinking...";
+const char	*paused = "Paused...";
+const char	*stumped = "Multiple Solutions";
+const char	*noSolution = "No Solution!";
+const char	*solved = "Ta Daaaa!!!";
+const char	*toExit = "Press any key ...";
+const char	*solveAnyway = "Solve (Y/N)?";
 int confirm ( DISPLAY *display, const char *message ) {
 	int y = display->y0 - 1, x, c, stringLength;
 	stringLength = strlen ( message );
