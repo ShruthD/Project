@@ -1,4 +1,4 @@
-#include	"countbits.h"
+#include "countbits.h"
 char b2dLookup [] = {	( char )  1,	( char )  2,	( char )  3,
 			( char ) 11,	( char ) 15,	( char )  4,
 			( char ) 12,	( char )  6,	( char ) 16,
