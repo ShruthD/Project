@@ -1,22 +1,20 @@
-/*Sudoku Puzzle Solver, puzzle solution logic.*/
+/*Puzzle solution logic*/
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<sys/stat.h>
 #include	"sudoku.h"
 #include	"countbits.h"
-
 HISTORY *openHistory ( void ) {
+	int i;
 	HISTORY	*hist;
 	if ( hist = ( HISTORY * ) malloc ( sizeof ( HISTORY ) ) ) {
-		int	i;
 		hist->head = -1;
 		for ( i = 0; i < 81; ++i ) {
 			hist->list[i] = -1;
 		}
 	}
-	return ( hist );
+	return hist;
 }
-
 int pushHistory ( HISTORY *hist, int row, int column ) {
 	int status = 0;
 	int i = 9 * row + column;
@@ -25,9 +23,8 @@ int pushHistory ( HISTORY *hist, int row, int column ) {
 		hist->list[i] = hist->head;
 		hist->head = i;
 	}
-	return ( status );
+	return status;
 }
-
 CELL *popHistory ( HISTORY *hist ) {
 	int i;
 	CELL *coords = NULL;
@@ -39,10 +36,9 @@ CELL *popHistory ( HISTORY *hist ) {
 		hist->head = hist->list [i];
 		hist->list [i] = -1;
 	}
-	return ( coords );
+	return coords;
 }
-
-static void flipHistory ( HISTORY *hist ) {
+void flipHistory ( HISTORY *hist ) {
 	int head = hist->head;
 	hist->head = -1;
 	while ( head > -1 ) {
@@ -52,7 +48,6 @@ static void flipHistory ( HISTORY *hist ) {
 		hist->head = i;
 	}
 }
-
 void closePuzzle ( PUZZLE *puzzle ) {
 	if ( puzzle ) {
 		if ( puzzle->history ) 
@@ -60,17 +55,14 @@ void closePuzzle ( PUZZLE *puzzle ) {
 	free ( ( void * ) puzzle );
    	}
 }
-
-static void copyPuzzle ( PUZZLE *src, PUZZLE *dest ) {
+void copyPuzzle ( PUZZLE *src, PUZZLE *dest ) {
 	int puzzleSize = sizeof (PUZZLE);
    	char *p = ( char * ) src;
    	char *q = ( char * ) dest;
-	while ( puzzleSize-- ) 
-		*q++ = *p++;
+	while ( puzzleSize-- )  *q++ = *p++;
    	dest->history = NULL;
 }
-
-static void clearPuzzle ( PUZZLE *puzzle ) {
+void clearPuzzle ( PUZZLE *puzzle ) {
 	int i, j;
    	puzzle->technique = 0;
   	puzzle->difficulty = 0;
@@ -87,7 +79,6 @@ static void clearPuzzle ( PUZZLE *puzzle ) {
 		for ( j = 0; j < 3; ++j )
 			puzzle->blockMasks [i][j] = (0x1FF);
 }
-
 PUZZLE *openPuzzle ( void ) {
 	PUZZLE *puzzle = NULL;
    	/* Allocate the object and initialize it. */
@@ -95,8 +86,7 @@ PUZZLE *openPuzzle ( void ) {
 		clearPuzzle ( puzzle );
    	return puzzle;
 }
-
-static int makeEntry ( PUZZLE *puzzle, int i, int j, int entry ) {
+int makeEntry ( PUZZLE *puzzle, int i, int j, int entry ) {
 	int status = 0, bit = digit2bit ( entry );
  	/* Is this a legal entry? */
    	if ( puzzle->rowMasks [i] & puzzle->columnMasks [j] & puzzle->blockMasks [i/3][j/3] & bit ) {
@@ -106,25 +96,21 @@ static int makeEntry ( PUZZLE *puzzle, int i, int j, int entry ) {
 		puzzle->blockMasks [i/3][j/3] ^= bit;
 		puzzle->grid [i][j] = entry;
 		puzzle->masks [i][j] = 0;
-		if ( puzzle->history ) 
-			pushHistory ( puzzle->history, i, j );
+		if ( puzzle->history ) pushHistory ( puzzle->history, i, j );
    	}
 	return status;
 }
-
-static int enterClues(PUZZLE *puzzle, char *clues ) {
+int enterClues(PUZZLE *puzzle, char *clues ) {
 	int status = 0, row = 0, column = 0, clue;
    	while ( *clues ) {
 		if ( isdigit ( *clues ) ) {
 			clue = *clues - '0';
 			if ( column > 8 ) {
 				column = 0;
-				if ( ++row > 8 ) 
-					break;
+				if ( ++row > 8 ) break;
 			}
 			if ( clue > 0 ) {
-				if ( ! ( status	= makeEntry ( puzzle, row, column, clue ) ) )
-					break;
+				if ( ! ( status	= makeEntry ( puzzle, row, column, clue ) ) ) break; 
 			}
 			++column;
 		}
@@ -140,7 +126,6 @@ static int enterClues(PUZZLE *puzzle, char *clues ) {
    	}
 	return status;
 }
-
 PUZZLE *openPuzzleSolver ( char *clues ) {
 	PUZZLE	*puzzle = NULL;
 	/* Allocate the object and initialize it. */
@@ -152,47 +137,38 @@ PUZZLE *openPuzzleSolver ( char *clues ) {
    	}
 	return puzzle;
 }
-
-static int countUnsolved ( PUZZLE *puzzle ) {
+int countUnsolved ( PUZZLE *puzzle ) {
 	int unsolved = 0;
 	int i, j;
 	for(i = 0; i < 9; ++i) {
 		for(j = 0; j < 9; ++j) {
-			if ( puzzle->grid [i][j] == 0 ) 
-				++unsolved;
+			if ( puzzle->grid [i][j] == 0 ) ++unsolved;
 		}
    	}
 	return unsolved;
 }
-
-static void updateRowMasks ( PUZZLE *puzzle, int row, int entry ) {
-	int column;
-   	int mask = ~digit2bit ( entry );
-   	for(column = 0; column < 9; ++column ) {
+void updateRowMasks ( PUZZLE *puzzle, int row, int entry ) {
+	int column, mask;
+   	mask = ~digit2bit ( entry );
+   	for(column = 0; column < 9; ++column ) 
 		puzzle->masks [row][column] &= mask;
-   	}
 }
-
-static void updateColumnMasks ( PUZZLE *puzzle, int column, int entry ) {
+void updateColumnMasks ( PUZZLE *puzzle, int column, int entry ) {
 	int row;
 	int mask = ~digit2bit ( entry );
-	for(row = 0; row < 9; ++row ) {
+	for(row = 0; row < 9; ++row ) 
 		puzzle->masks [row][column] &= mask;
-   	}
 }
-
-static void updateBlockMasks ( PUZZLE *puzzle, int row, int column, int entry ) {
-  	int	rowMax = row + 3 - ( row % 3 );
-   	int	columnMax = column + 3 - ( column % 3 );
-   	int	mask = ~digit2bit ( entry );
-	for ( row = rowMax - 3; row < rowMax; ++row ) {
-		for ( column = columnMax - 3; column < columnMax; ++column ) {
+void updateBlockMasks ( PUZZLE *puzzle, int row, int column, int entry ) {
+  	int rowMax, columnMax, mask;
+  	rowMax = row + 3 - ( row % 3 );
+   	columnMax = column + 3 - ( column % 3 );
+   	mask = ~digit2bit ( entry );
+	for ( row = rowMax - 3; row < rowMax; ++row ) 
+		for ( column = columnMax - 3; column < columnMax; ++column ) 
 			puzzle->masks [row][column] &= mask;
-		}
-   	}
 }
-
-static int missingDigitScan ( PUZZLE *puzzle ) {
+int missingDigitScan ( PUZZLE *puzzle ) {
    	int progress = 0;
    	int i, j, solution;
 	puzzle->difficulty += 1;
@@ -205,32 +181,25 @@ static int missingDigitScan ( PUZZLE *puzzle ) {
 					updateRowMasks ( puzzle, i, solution );
 					updateColumnMasks ( puzzle, j, solution );
 					updateBlockMasks ( puzzle, i, j, solution );
-				} else if(! puzzle->masks [i][j]) 
-					progress = -1;
+				} else if(! puzzle->masks [i][j])  progress = -1;
 			}
 		}
   	}
    	if ( progress > 0 ) puzzle->technique |= (0x400);
    	return progress;
 }
-
-static int crossHatch ( int *masks ) {
-   	int progress = 0;
-   	int solutions [9];
-   	int i, j;
+int crossHatch ( int *masks ) {
+   	int progress = 0, i, j, solutions[9];
    	for(i = 0; i < 9; ++i) {
 		solutions [i] = masks [i];
 		for ( j = 0; j < 9; ++j ) if ( j != i ) solutions [i] &= ~masks [j];
 	}
-	for(i = 0; i < 9; ++i) {
+	for(i = 0; i < 9; ++i) 
 		if(masks [i] = bit2digit(solutions [i] )) 
 			++progress;
-   	}
-	return progress;
+   	return progress;
 }
-		
-
-static int getRowMasks ( PUZZLE *puzzle, int row, int *masks ) {
+int getRowMasks ( PUZZLE *puzzle, int row, int *masks ) {
    	int status = 0, mask = 0, column;
 	if(puzzle->rowMasks [row]) {
 		status = 1;
@@ -239,29 +208,23 @@ static int getRowMasks ( PUZZLE *puzzle, int row, int *masks ) {
 			masks [column] = puzzle->masks [row][column];
 			mask |= masks [column];
 		}
-		if ( mask != puzzle->rowMasks [row] ) 
-			status = -1;
+		if ( mask != puzzle->rowMasks [row] ) status = -1;
    	}
 	return status;
 }
-
-
-static int enterRowSolutions ( PUZZLE *puzzle, int row, int *solutions ) {
+int enterRowSolutions ( PUZZLE *puzzle, int row, int *solutions ) {
    	int progress = 0, column;
 	/* Display the solutions. */
-   	for(column = 0; column < 9; ++column) {
-		if(solutions [column]) {
+   	for(column = 0; column < 9; ++column) 
+		if(solutions [column]) 
 			if(makeEntry(puzzle, row, column, solutions [column])) {
 				++progress;
 				updateColumnMasks ( puzzle, column, solutions [column] );
 				updateBlockMasks ( puzzle, row, column, solutions [column] );
 			}
-		}
-   	}
 	return progress;
 }
-
-static int getColumnMasks ( PUZZLE *puzzle, int column, int *masks ) {
+int getColumnMasks ( PUZZLE *puzzle, int column, int *masks ) {
 	int status = 0, mask = 0, row;
  	/* Make sure the column is not already filled. */
    	if(puzzle->columnMasks [column]) {
@@ -275,8 +238,7 @@ static int getColumnMasks ( PUZZLE *puzzle, int column, int *masks ) {
    	}
 	return status;
 }
-
-static int enterColumnSolutions ( PUZZLE *puzzle, int column, int *solutions ) {
+int enterColumnSolutions ( PUZZLE *puzzle, int column, int *solutions ) {
    	int progress = 0, row;
    	/* Enter the results of cross hatching the column. */
    	for(row = 0; row < 9; ++row) {
@@ -284,16 +246,13 @@ static int enterColumnSolutions ( PUZZLE *puzzle, int column, int *solutions ) {
 			if ( makeEntry ( puzzle, row, column, solutions [row] ) ) {
 				++progress;
 				updateRowMasks ( puzzle, row, solutions [row] );
-				updateBlockMasks ( puzzle, row, column,
-							solutions [row] );
+				updateBlockMasks ( puzzle, row, column, solutions [row] );
 			}
 		}
 	}
 	return progress;
 }
-
-
-static int getBlockMasks ( PUZZLE *puzzle, int row, int column, int *masks ) {
+int getBlockMasks ( PUZZLE *puzzle, int row, int column, int *masks ) {
 	int status = 0, rowMax, columnMax, k, mask, i, j;
    	/* Make sure the 3x3 block is not already full. */
 	if ( puzzle->blockMasks [row][column] ) {
@@ -303,56 +262,45 @@ static int getBlockMasks ( PUZZLE *puzzle, int row, int column, int *masks ) {
 		mask = 0;
 		status = 1;
 		/* Make masks for the 3x3 block. */
-		for(i = rowMax - 3; i < rowMax; ++i) {
+		for(i = rowMax - 3; i < rowMax; ++i) 
 			for ( j = columnMax - 3; j < columnMax; ++j ) {
 				masks [k] = puzzle->masks [i][j];
 				mask |= masks [k];
 				++k;
 			}
-		}
 		if ( mask != puzzle->blockMasks [row][column] ) status = -1;
    	}
 	return status;
 }
-
-
-static int enterBlockSolutions ( PUZZLE *puzzle, int row, int column, int *solutions) {
-	int progress = 0;
+int enterBlockSolutions ( PUZZLE *puzzle, int row, int column, int *solutions) {
+	int progress = 0, k = 0, i, j;
 	int rowMax = ( row + 1 ) * 3;
    	int columnMax = ( column + 1 ) * 3;
-   	int k = 0, i , j;
-	for ( i = rowMax - 3; i < rowMax; ++i ) {
-		for ( j = columnMax - 3; j < columnMax; ++j ) {
+	for ( i = rowMax - 3; i < rowMax; ++i ) 
+		for ( j = columnMax - 3; j < columnMax; ++j ) 
 			if ( solutions [k] ) {
 				if ( makeEntry ( puzzle, i, j, solutions [k] ) ) {
 					++progress;
 					updateRowMasks ( puzzle, i, solutions [k] );
 					updateColumnMasks ( puzzle, j, solutions [k] );
 				}
-			}
 			++k;
 		}
-   	}
    	return progress;
 }
-
-
-static int crossHatchScan ( PUZZLE *puzzle ) {
-   	int	progress = 0;
-   	int	i, j, masks[9], status;
+int crossHatchScan ( PUZZLE *puzzle ) {
+   	int progress = 0, i, j, masks[9], status;
    	puzzle->difficulty += 1;
    	/* Cross hatch the 3x3 blocks. */
-   	for ( i = 0; i < 3 && progress > -1; i++ ) {
+   	for ( i = 0; i < 3 && progress > -1; i++ ) 
 		for ( j = 0; j < 3 && progress > -1; j++ ) {
 			if ( ( status = getBlockMasks ( puzzle, i, j, masks ) ) > 0 ) {
 				if ( crossHatch ( masks ) ) {
 					progress += enterBlockSolutions ( puzzle, i, j, masks );
 				}
-			} else if ( status < 0 ) 
-				progress = -1;
+			} else if ( status < 0 ) progress = -1;
 		}
-   	}
-	if ( ! progress ) {
+   	if ( ! progress ) {
 		puzzle->difficulty += 1;
 		/* Cross hatch the rows. */
 		for ( i = 0; i < 9 && progress > -1; ++i ) {
@@ -360,8 +308,7 @@ static int crossHatchScan ( PUZZLE *puzzle ) {
 				if ( crossHatch ( masks ) ) {
 					progress += enterRowSolutions ( puzzle, i, masks);
 				}
-			} else if ( status < 0 ) 
-				progress = -1;
+			} else if ( status < 0 ) progress = -1;
 		}
 		/* Cross hatch the columns. */
 		for ( i = 0; i < 9 && progress > -1; ++i ) {
@@ -372,15 +319,11 @@ static int crossHatchScan ( PUZZLE *puzzle ) {
 			} else if ( status < 0 ) 
 				progress = -1;
 		}
-		if ( progress > 0 ) 
-			puzzle->technique |= (0x200);
-   	} else if ( progress > 0 ) 
-   		puzzle->technique |= (0x100);
+		if ( progress > 0 ) puzzle->technique |= (0x200);
+   	} else if ( progress > 0 ) puzzle->technique |= (0x100);
    	return progress;
 }
-
-
-static int findRowTuple ( PUZZLE *puzzle, int row, int mask, int bitCount ) {
+int findRowTuple ( PUZZLE *puzzle, int row, int mask, int bitCount ) {
    	int progress = 0, tupleMask = 0, tupleCount = 0, tupleBit = 0x100, dProgress;
    	int exactCount = 0, rowMax = row + 3 - ( row % 3 ), columnMax = 0, column, cellMask, i;
    	for( column = 0; column < 9; ++column ) {
@@ -388,8 +331,7 @@ static int findRowTuple ( PUZZLE *puzzle, int row, int mask, int bitCount ) {
 		if ( mask & cellMask ) {
 			++tupleCount;
 			tupleMask |= tupleBit;
-			if ( ! ( ~mask & cellMask ) ) 
-				++exactCount;
+			if ( ! ( ~mask & cellMask ) ) ++exactCount;
 		}
 		tupleBit >>= 1;
    	}
@@ -399,8 +341,7 @@ static int findRowTuple ( PUZZLE *puzzle, int row, int mask, int bitCount ) {
 		for(column = 0; column < 9; ++column) {
 			cellMask = puzzle->masks [row][column];
 			if(cellMask) {
-				if (!(~mask & cellMask)) 
-					tupleMask |= tupleBit;
+				if (!(~mask & cellMask)) tupleMask |= tupleBit;
 				else if ( mask & cellMask ) {
 					puzzle->masks [row][column] &= ~mask;
 					++progress;
@@ -410,8 +351,7 @@ static int findRowTuple ( PUZZLE *puzzle, int row, int mask, int bitCount ) {
 		}
 		if(progress && bitCount > 1) {
 			puzzle->technique |= (0x800);
-			if ( GNL ( puzzle->technique ) < bitCount )
-				SNL ( puzzle->technique, bitCount );
+			if ( GNL ( puzzle->technique ) < bitCount ) SNL ( puzzle->technique, bitCount );
 		}
    	} else if ( tupleCount == bitCount ) {
 		for ( column = 0; column < 9; ++column ) {
@@ -429,12 +369,9 @@ static int findRowTuple ( PUZZLE *puzzle, int row, int mask, int bitCount ) {
    	}	
    	if(bitCount < 4) {
 		dProgress = 0;
-		if(!(tupleMask & ~(0x1C0))) 
-			columnMax = 3;
-		else if(!(tupleMask & ~(0x038))) 
-			columnMax = 6;
-		else if(!(tupleMask & ~(0x007))) 
-			columnMax = 9;
+		if(!(tupleMask & ~(0x1C0))) columnMax = 3;
+		else if(!(tupleMask & ~(0x038))) columnMax = 6;
+		else if(!(tupleMask & ~(0x007))) columnMax = 9;
 		if(columnMax) {
 			for(i = rowMax - 3; i < rowMax; ++i) {
 				if ( i != row ) {
@@ -459,9 +396,7 @@ static int findRowTuple ( PUZZLE *puzzle, int row, int mask, int bitCount ) {
    	}
 	return progress;
 }
-
-
-static int rowTuples ( PUZZLE *puzzle, int row, int mask, int bitCount, int skip ) {
+int rowTuples ( PUZZLE *puzzle, int row, int mask, int bitCount, int skip ) {
    	int progress = 0, maskBits = countBits ( mask ), skipped, digitBit, digitMask;
 	if ( maskBits > bitCount && skip < maskBits ) {
 		digitBit = 0x100;
@@ -481,8 +416,7 @@ static int rowTuples ( PUZZLE *puzzle, int row, int mask, int bitCount, int skip
    	}
 	return progress;
 }
- 
-static int findColumnTuple ( PUZZLE *puzzle, int column, int mask, int bitCount ) {
+int findColumnTuple ( PUZZLE *puzzle, int column, int mask, int bitCount ) {
    	int progress = 0, tupleCount = 0, tupleMask = 0, tupleBit = 0x100, exactCount = 0, rowMax = 0, row, columnMax, cellMask, j, dProgress;
 	columnMax = column + 3 - ( column % 3 );
    	for ( row = 0; row < 9; ++row ) {
@@ -490,8 +424,7 @@ static int findColumnTuple ( PUZZLE *puzzle, int column, int mask, int bitCount 
 		if ( mask & cellMask ) {
 			++tupleCount;
 			tupleMask |= tupleBit;
-			if(!(~mask & cellMask)) 
-				++exactCount;
+			if(!(~mask & cellMask)) ++exactCount;
 		}
 		tupleBit >>= 1;
    	}
@@ -501,8 +434,7 @@ static int findColumnTuple ( PUZZLE *puzzle, int column, int mask, int bitCount 
 		for(row = 0; row < 9; ++row){
 			cellMask = puzzle->masks [row][column];
 			if(cellMask) {
-				if(!(~mask & cellMask)) 
-					tupleMask |= tupleBit;
+				if(!(~mask & cellMask)) tupleMask |= tupleBit;
 				else if ( mask & cellMask ) {
 					puzzle->masks [row][column] &= ~mask;
 					++progress;
@@ -531,12 +463,9 @@ static int findColumnTuple ( PUZZLE *puzzle, int column, int mask, int bitCount 
    	}
    	if(bitCount < 4) {
 		dProgress = 0;
-		if(!(tupleMask & ~(0x1C0))) 
-			rowMax = 3;
-		else if(!(tupleMask & ~(0x038))) 
-			rowMax = 6;
-		else if(!(tupleMask & ~(0x007))) 
-			rowMax = 9;
+		if(!(tupleMask & ~(0x1C0))) rowMax = 3;
+		else if(!(tupleMask & ~(0x038))) rowMax = 6;
+		else if(!(tupleMask & ~(0x007))) rowMax = 9;
 		if ( rowMax ) {
 			for ( j = columnMax - 3; j < columnMax; ++j ) {
 				if ( j != column ) {
@@ -550,8 +479,7 @@ static int findColumnTuple ( PUZZLE *puzzle, int column, int mask, int bitCount 
 			}
 		}
 		if(dProgress) {
-			if(bitCount == 1) 
-				puzzle->technique |= (0x2000);
+			if(bitCount == 1) puzzle->technique |= (0x2000);
 			else {
 				puzzle->technique |= (0x800);
 				if(GNL(puzzle->technique) < bitCount )
@@ -562,8 +490,7 @@ static int findColumnTuple ( PUZZLE *puzzle, int column, int mask, int bitCount 
    	}
 	return progress;
 }
-
-static int columnTuples ( PUZZLE *puzzle, int column, int mask, int bitCount, int skip ) {
+int columnTuples ( PUZZLE *puzzle, int column, int mask, int bitCount, int skip ) {
    	int progress = 0, maskBits = countBits ( mask );
 	int digitBit, skipped, digitMask;
 	if ( maskBits > bitCount && skip < maskBits ) {
@@ -584,8 +511,7 @@ static int columnTuples ( PUZZLE *puzzle, int column, int mask, int bitCount, in
    	}	
 	return progress;
 }
- 
-static findBlockTuple ( PUZZLE *puzzle, int top, int left, int mask, int bitCount ) {
+int findBlockTuple ( PUZZLE *puzzle, int top, int left, int mask, int bitCount ) {
    	int progress = 0, tupleCount = 0, tupleMask = 0, tupleBit, exactCount = 0, i = -1, j = -1, row, rowMax, columnMax, column, cellMask, dProgress, jMax, iMax;
    	tupleBit = 0x100;
    	rowMax = ( top + 1 ) * 3;
@@ -596,8 +522,7 @@ static findBlockTuple ( PUZZLE *puzzle, int top, int left, int mask, int bitCoun
 			if ( mask & cellMask ) {
 				++tupleCount;
 				tupleMask |= tupleBit;
-				if(!( ~mask & cellMask)) 
-					++exactCount;
+				if(!( ~mask & cellMask)) ++exactCount;
 			}
 			tupleBit >>= 1;
 		}
@@ -609,8 +534,7 @@ static findBlockTuple ( PUZZLE *puzzle, int top, int left, int mask, int bitCoun
 			for(column = columnMax - 3; column < columnMax; ++column) {
 				cellMask = puzzle->masks [row][column];
 				if(cellMask) {
-					if(!(~mask & cellMask))
-						tupleMask |= tupleBit;
+					if(!(~mask & cellMask))	tupleMask |= tupleBit;
 					else if(mask & cellMask) {
 						puzzle->masks [row][column] &= ~mask;
 						++progress;
@@ -642,18 +566,12 @@ static findBlockTuple ( PUZZLE *puzzle, int top, int left, int mask, int bitCoun
    	}
    	if ( bitCount < 4 ) {
 		dProgress = 0;
-		if ( ! ( tupleMask & ~(0x1C0) ) ) 
-			i = rowMax - 3;
-		else if ( ! ( tupleMask & ~(0X038) ) ) 
-			i = rowMax - 2;
-		else if ( ! ( tupleMask & ~(0x007) ) ) 
-			i = rowMax - 1;
-		else if ( ! ( tupleMask & ~(0x124) ) ) 
-			j = columnMax - 3;
-		else if ( ! ( tupleMask & ~(0x092) ) ) 
-			j = columnMax - 2;
-		else if ( ! ( tupleMask & ~(0x049) ) ) 
-			j = columnMax - 1;
+		if ( ! ( tupleMask & ~(0x1C0) ) ) i = rowMax - 3;
+		else if ( ! ( tupleMask & ~(0X038) ) ) i = rowMax - 2;
+		else if ( ! ( tupleMask & ~(0x007) ) ) i = rowMax - 1;
+		else if ( ! ( tupleMask & ~(0x124) ) ) j = columnMax - 3;
+		else if ( ! ( tupleMask & ~(0x092) ) ) j = columnMax - 2;
+		else if ( ! ( tupleMask & ~(0x049) ) ) j = columnMax - 1;
 		if ( i > -1 ) {
 			jMax = columnMax - 3;
 			for ( j = 0; j < jMax; ++j ) {
@@ -695,8 +613,7 @@ static findBlockTuple ( PUZZLE *puzzle, int top, int left, int mask, int bitCoun
    	}
 	return progress;
 }
-
-static int blockTuples ( PUZZLE *puzzle, int top, int left, int mask, int bitCount, int skip ) {
+int blockTuples ( PUZZLE *puzzle, int top, int left, int mask, int bitCount, int skip ) {
 	int progress = 0, digitBit, skipped, digitMask, maskBits = countBits ( mask );
 	if ( maskBits > bitCount && skip < maskBits ) {
 		digitBit = 0x100;
@@ -716,8 +633,7 @@ static int blockTuples ( PUZZLE *puzzle, int top, int left, int mask, int bitCou
    	}
    	return progress;
 }
- 
-static int tuplesAnalysis ( PUZZLE *puzzle ) {
+int tuplesAnalysis ( PUZZLE *puzzle ) {
    	int progress = 0, i, mask, j, bitCount = 1;	
    	/* Start at 1 to cover virtual cross-hatching. */
    	while(!progress && bitCount < 5) {
@@ -745,8 +661,7 @@ static int tuplesAnalysis ( PUZZLE *puzzle ) {
    		puzzle->difficulty += 4;
    	return progress;
 }
-
-static int contradictions ( PUZZLE *puzzle ) {
+int contradictions ( PUZZLE *puzzle ) {
 	int progress = 0, minBitCount = 9, row, column, i, bit = 0x100, ambiguous = 0, mask, j, bits, entry, solutions, r, c;
 	puzzle->difficulty += 1;
 	/* Scan for a cell with a minimal candidate set. */
@@ -788,8 +703,7 @@ static int contradictions ( PUZZLE *puzzle ) {
 				puzzle->difficulty = puzzle2.difficulty;
 				progress = -1;
 				break;
-			} else 
-				++ambiguous;
+			} else ++ambiguous;
 		}
 		bit >>= 1;
 	}
@@ -797,15 +711,13 @@ static int contradictions ( PUZZLE *puzzle ) {
 		puzzle->technique |= (0x4000);
    	return progress;
 }
-
 int solvePuzzle ( PUZZLE *puzzle, HISTORY *hist ) {
 	int solutions, progress = 1, i;
 	puzzle->history = hist;
 	solutions = countUnsolved ( puzzle );
 	while ( solutions && progress > 0 ) {
 		if((progress = crossHatchScan(puzzle)) || (progress = missingDigitScan(puzzle))) {
-			if ( progress > 0 ) 
-				solutions -= progress;
+			if ( progress > 0 ) solutions -= progress;
 			else {
 				solutions = -1;
 				progress = 0;
@@ -813,9 +725,7 @@ int solvePuzzle ( PUZZLE *puzzle, HISTORY *hist ) {
 		} else if(!(progress = tuplesAnalysis(puzzle)))
 					progress = contradictions ( puzzle );
    	}
-   	if(puzzle->history)
-   		flipHistory(puzzle->history);
-   	if((solutions += 1) > 2) 
-   		solutions = 2;
+   	if(puzzle->history) flipHistory(puzzle->history);
+   	if((solutions += 1) > 2) solutions = 2;
    	return solutions;
 }
