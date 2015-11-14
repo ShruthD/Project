@@ -1,4 +1,4 @@
-/*Puzzle solution logic*/
+/*Puzzle solution logic.*/
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<sys/stat.h>
@@ -323,37 +323,37 @@ int crossHatchScan ( PUZZLE *puzzle ) {
    	} else if ( progress > 0 ) puzzle->technique |= (0x100);
    	return progress;
 }
-int findRowTuple ( PUZZLE *puzzle, int row, int mask, int bitCount ) {
-   	int progress = 0, tupleMask = 0, tupleCount = 0, tupleBit = 0x100, dProgress;
+int findRow ( PUZZLE *puzzle, int row, int mask, int bitCount ) {
+   	int progress = 0, Mask = 0, Count = 0, Bit = 0x100, dProgress;
    	int exactCount = 0, rowMax = row + 3 - ( row % 3 ), columnMax = 0, column, cellMask, i;
    	for( column = 0; column < 9; ++column ) {
 		cellMask = puzzle->masks [row][column];
 		if ( mask & cellMask ) {
-			++tupleCount;
-			tupleMask |= tupleBit;
+			++Count;
+			Mask |= Bit;
 			if ( ! ( ~mask & cellMask ) ) ++exactCount;
 		}
-		tupleBit >>= 1;
+		Bit >>= 1;
    	}
 	if(exactCount == bitCount) {
-		tupleBit = 0x100;
-		tupleMask = 0;
+		Bit = 0x100;
+		Mask = 0;
 		for(column = 0; column < 9; ++column) {
 			cellMask = puzzle->masks [row][column];
 			if(cellMask) {
-				if (!(~mask & cellMask)) tupleMask |= tupleBit;
+				if (!(~mask & cellMask)) Mask |= Bit;
 				else if ( mask & cellMask ) {
 					puzzle->masks [row][column] &= ~mask;
 					++progress;
 				}
 			}
-			tupleBit >>= 1;
+			Bit >>= 1;
 		}
 		if(progress && bitCount > 1) {
 			puzzle->technique |= (0x800);
 			if ( GNL ( puzzle->technique ) < bitCount ) SNL ( puzzle->technique, bitCount );
 		}
-   	} else if ( tupleCount == bitCount ) {
+   	} else if ( Count == bitCount ) {
 		for ( column = 0; column < 9; ++column ) {
 			cellMask = puzzle->masks [row][column];
 			if ( ( mask & cellMask ) && ( ~mask & cellMask ) ) {
@@ -369,9 +369,9 @@ int findRowTuple ( PUZZLE *puzzle, int row, int mask, int bitCount ) {
    	}	
    	if(bitCount < 4) {
 		dProgress = 0;
-		if(!(tupleMask & ~(0x1C0))) columnMax = 3;
-		else if(!(tupleMask & ~(0x038))) columnMax = 6;
-		else if(!(tupleMask & ~(0x007))) columnMax = 9;
+		if(!(Mask & ~(0x1C0))) columnMax = 3;
+		else if(!(Mask & ~(0x038))) columnMax = 6;
+		else if(!(Mask & ~(0x007))) columnMax = 9;
 		if(columnMax) {
 			for(i = rowMax - 3; i < rowMax; ++i) {
 				if ( i != row ) {
@@ -396,7 +396,7 @@ int findRowTuple ( PUZZLE *puzzle, int row, int mask, int bitCount ) {
    	}
 	return progress;
 }
-int rowTuples ( PUZZLE *puzzle, int row, int mask, int bitCount, int skip ) {
+int rows ( PUZZLE *puzzle, int row, int mask, int bitCount, int skip ) {
    	int progress = 0, maskBits = countBits ( mask ), skipped, digitBit, digitMask;
 	if ( maskBits > bitCount && skip < maskBits ) {
 		digitBit = 0x100;
@@ -406,9 +406,9 @@ int rowTuples ( PUZZLE *puzzle, int row, int mask, int bitCount, int skip ) {
 			if ( ( digitBit & mask ) && skipped++ == skip ) {
 				digitMask = mask ^ digitBit;
 				if ( maskBits != bitCount )
-					progress += rowTuples ( puzzle, row, digitMask, bitCount, skip );
+					progress += rows ( puzzle, row, digitMask, bitCount, skip );
 				else
-					progress += findRowTuple ( puzzle, row, digitMask, bitCount );
+					progress += findRow ( puzzle, row, digitMask, bitCount );
 				++skip;
 			}
 			digitBit >>= 1;
@@ -416,38 +416,38 @@ int rowTuples ( PUZZLE *puzzle, int row, int mask, int bitCount, int skip ) {
    	}
 	return progress;
 }
-int findColumnTuple ( PUZZLE *puzzle, int column, int mask, int bitCount ) {
-   	int progress = 0, tupleCount = 0, tupleMask = 0, tupleBit = 0x100, exactCount = 0, rowMax = 0, row, columnMax, cellMask, j, dProgress;
+int findColumn ( PUZZLE *puzzle, int column, int mask, int bitCount ) {
+   	int progress = 0, Count = 0, Mask = 0, Bit = 0x100, exactCount = 0, rowMax = 0, row, columnMax, cellMask, j, dProgress;
 	columnMax = column + 3 - ( column % 3 );
    	for ( row = 0; row < 9; ++row ) {
 		cellMask = puzzle->masks [row][column];
 		if ( mask & cellMask ) {
-			++tupleCount;
-			tupleMask |= tupleBit;
+			++Count;
+			Mask |= Bit;
 			if(!(~mask & cellMask)) ++exactCount;
 		}
-		tupleBit >>= 1;
+		Bit >>= 1;
    	}
    	if(exactCount == bitCount) {
-		tupleMask = 0;
-		tupleBit = 0x100;
+		Mask = 0;
+		Bit = 0x100;
 		for(row = 0; row < 9; ++row){
 			cellMask = puzzle->masks [row][column];
 			if(cellMask) {
-				if(!(~mask & cellMask)) tupleMask |= tupleBit;
+				if(!(~mask & cellMask)) Mask |= Bit;
 				else if ( mask & cellMask ) {
 					puzzle->masks [row][column] &= ~mask;
 					++progress;
 				}
 			}
-		tupleBit >>= 1;
+		Bit >>= 1;
 		}
 		if(progress && bitCount > 1) {
 			puzzle->technique |= (0x800);
 			if(GNL(puzzle->technique) < bitCount)
 				SNL( puzzle->technique, bitCount );
 		}
-   	} else if(tupleCount == bitCount) {
+   	} else if(Count == bitCount) {
 		for(row = 0; row < 9; ++row) {
 			cellMask = puzzle->masks [row][column];
 			if((mask & cellMask) && (~mask & cellMask)) {
@@ -463,9 +463,9 @@ int findColumnTuple ( PUZZLE *puzzle, int column, int mask, int bitCount ) {
    	}
    	if(bitCount < 4) {
 		dProgress = 0;
-		if(!(tupleMask & ~(0x1C0))) rowMax = 3;
-		else if(!(tupleMask & ~(0x038))) rowMax = 6;
-		else if(!(tupleMask & ~(0x007))) rowMax = 9;
+		if(!(Mask & ~(0x1C0))) rowMax = 3;
+		else if(!(Mask & ~(0x038))) rowMax = 6;
+		else if(!(Mask & ~(0x007))) rowMax = 9;
 		if ( rowMax ) {
 			for ( j = columnMax - 3; j < columnMax; ++j ) {
 				if ( j != column ) {
@@ -490,7 +490,7 @@ int findColumnTuple ( PUZZLE *puzzle, int column, int mask, int bitCount ) {
    	}
 	return progress;
 }
-int columnTuples ( PUZZLE *puzzle, int column, int mask, int bitCount, int skip ) {
+int columns ( PUZZLE *puzzle, int column, int mask, int bitCount, int skip ) {
    	int progress = 0, maskBits = countBits ( mask );
 	int digitBit, skipped, digitMask;
 	if ( maskBits > bitCount && skip < maskBits ) {
@@ -501,9 +501,9 @@ int columnTuples ( PUZZLE *puzzle, int column, int mask, int bitCount, int skip 
 			if ( ( digitBit & mask ) && skipped++ == skip ) {
 				digitMask = mask ^ digitBit;
 				if ( maskBits != bitCount )
-					progress += columnTuples ( puzzle, column, digitMask, bitCount, skip );
+					progress += columns ( puzzle, column, digitMask, bitCount, skip );
 				else
-					progress += findColumnTuple ( puzzle, column, digitMask, bitCount );
+					progress += findColumn ( puzzle, column, digitMask, bitCount );
 				++skip;
 			}
 			digitBit >>= 1;
@@ -511,36 +511,36 @@ int columnTuples ( PUZZLE *puzzle, int column, int mask, int bitCount, int skip 
    	}	
 	return progress;
 }
-int findBlockTuple ( PUZZLE *puzzle, int top, int left, int mask, int bitCount ) {
-   	int progress = 0, tupleCount = 0, tupleMask = 0, tupleBit, exactCount = 0, i = -1, j = -1, row, rowMax, columnMax, column, cellMask, dProgress, jMax, iMax;
-   	tupleBit = 0x100;
+int findBlock ( PUZZLE *puzzle, int top, int left, int mask, int bitCount ) {
+   	int progress = 0, Count = 0, Mask = 0, Bit, exactCount = 0, i = -1, j = -1, row, rowMax, columnMax, column, cellMask, dProgress, jMax, iMax;
+   	Bit = 0x100;
    	rowMax = ( top + 1 ) * 3;
    	columnMax = ( left + 1 ) * 3;
 	for(row = rowMax - 3; row < rowMax; ++row) {
 		for ( column = columnMax - 3; column < columnMax; ++column ) {
 			cellMask = puzzle->masks [row][column];
 			if ( mask & cellMask ) {
-				++tupleCount;
-				tupleMask |= tupleBit;
+				++Count;
+				Mask |= Bit;
 				if(!( ~mask & cellMask)) ++exactCount;
 			}
-			tupleBit >>= 1;
+			Bit >>= 1;
 		}
    	}
    	if(exactCount == bitCount) {
-		tupleMask = 0;
-		tupleBit = 0x100;
+		Mask = 0;
+		Bit = 0x100;
 		for(row = rowMax - 3; row < rowMax; ++row) {
 			for(column = columnMax - 3; column < columnMax; ++column) {
 				cellMask = puzzle->masks [row][column];
 				if(cellMask) {
-					if(!(~mask & cellMask))	tupleMask |= tupleBit;
+					if(!(~mask & cellMask))	Mask |= Bit;
 					else if(mask & cellMask) {
 						puzzle->masks [row][column] &= ~mask;
 						++progress;
 					}
 				}
-				tupleBit >>= 1;
+				Bit >>= 1;
 			}
 		}
 		if(progress && bitCount > 1) {
@@ -548,7 +548,7 @@ int findBlockTuple ( PUZZLE *puzzle, int top, int left, int mask, int bitCount )
 			if(GNL(puzzle->technique) < bitCount)
 			SNL ( puzzle->technique, bitCount );
 		}
-   	} else if ( tupleCount == bitCount ) {
+   	} else if ( Count == bitCount ) {
 		for ( row = rowMax - 3; row < rowMax; ++row ) {
 			for ( column = columnMax - 3; column < columnMax; ++column ) {
 				cellMask = puzzle->masks [row][column];
@@ -566,12 +566,12 @@ int findBlockTuple ( PUZZLE *puzzle, int top, int left, int mask, int bitCount )
    	}
    	if ( bitCount < 4 ) {
 		dProgress = 0;
-		if ( ! ( tupleMask & ~(0x1C0) ) ) i = rowMax - 3;
-		else if ( ! ( tupleMask & ~(0X038) ) ) i = rowMax - 2;
-		else if ( ! ( tupleMask & ~(0x007) ) ) i = rowMax - 1;
-		else if ( ! ( tupleMask & ~(0x124) ) ) j = columnMax - 3;
-		else if ( ! ( tupleMask & ~(0x092) ) ) j = columnMax - 2;
-		else if ( ! ( tupleMask & ~(0x049) ) ) j = columnMax - 1;
+		if ( ! ( Mask & ~(0x1C0) ) ) i = rowMax - 3;
+		else if ( ! ( Mask & ~(0X038) ) ) i = rowMax - 2;
+		else if ( ! ( Mask & ~(0x007) ) ) i = rowMax - 1;
+		else if ( ! ( Mask & ~(0x124) ) ) j = columnMax - 3;
+		else if ( ! ( Mask & ~(0x092) ) ) j = columnMax - 2;
+		else if ( ! ( Mask & ~(0x049) ) ) j = columnMax - 1;
 		if ( i > -1 ) {
 			jMax = columnMax - 3;
 			for ( j = 0; j < jMax; ++j ) {
@@ -613,7 +613,7 @@ int findBlockTuple ( PUZZLE *puzzle, int top, int left, int mask, int bitCount )
    	}
 	return progress;
 }
-int blockTuples ( PUZZLE *puzzle, int top, int left, int mask, int bitCount, int skip ) {
+int blocks ( PUZZLE *puzzle, int top, int left, int mask, int bitCount, int skip ) {
 	int progress = 0, digitBit, skipped, digitMask, maskBits = countBits ( mask );
 	if ( maskBits > bitCount && skip < maskBits ) {
 		digitBit = 0x100;
@@ -623,9 +623,9 @@ int blockTuples ( PUZZLE *puzzle, int top, int left, int mask, int bitCount, int
 			if ( ( digitBit & mask ) && skipped++ == skip ) {
 					digitMask = mask ^ digitBit;
 				if ( maskBits != bitCount )
-					progress += blockTuples ( puzzle, top, left, digitMask, bitCount, skip );
+					progress += blocks ( puzzle, top, left, digitMask, bitCount, skip );
 				else
-					progress += findBlockTuple ( puzzle, top, left, digitMask, bitCount );
+					progress += findBlock ( puzzle, top, left, digitMask, bitCount );
 			++skip;
 			}
 			digitBit >>= 1;
@@ -633,7 +633,7 @@ int blockTuples ( PUZZLE *puzzle, int top, int left, int mask, int bitCount, int
    	}
    	return progress;
 }
-int tuplesAnalysis ( PUZZLE *puzzle ) {
+int sAnalysis ( PUZZLE *puzzle ) {
    	int progress = 0, i, mask, j, bitCount = 1;	
    	/* Start at 1 to cover virtual cross-hatching. */
    	while(!progress && bitCount < 5) {
@@ -641,18 +641,18 @@ int tuplesAnalysis ( PUZZLE *puzzle ) {
 		for(i = 0; i < 9; ++i) {
 			mask = puzzle->rowMasks [i];
 			if(mask) 
-				progress += rowTuples ( puzzle, i, mask, bitCount, 0 );
+				progress += rows ( puzzle, i, mask, bitCount, 0 );
 		}
 		for(i = 0; i < 9; ++i) {
 			mask = puzzle->columnMasks [i];
 			if(mask) 
-				progress += columnTuples ( puzzle, i, mask, bitCount, 0 );
+				progress += columns ( puzzle, i, mask, bitCount, 0 );
 		}
 		for(i = 0; i < 3; ++i) {
 			for(j = 0; j < 3; ++j) {
 				mask = puzzle->blockMasks [i][j];
 				if(mask) 
-					progress += blockTuples ( puzzle, i, j, mask, bitCount, 0 );
+					progress += blocks ( puzzle, i, j, mask, bitCount, 0 );
 			}
 		}
 		++bitCount;
@@ -722,7 +722,7 @@ int solvePuzzle ( PUZZLE *puzzle, HISTORY *hist ) {
 				solutions = -1;
 				progress = 0;
 			}
-		} else if(!(progress = tuplesAnalysis(puzzle)))
+		} else if(!(progress = sAnalysis(puzzle)))
 					progress = contradictions ( puzzle );
    	}
    	if(puzzle->history) flipHistory(puzzle->history);
